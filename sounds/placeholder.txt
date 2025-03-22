@@ -1,0 +1,17 @@
+
+Esta pasta contém os arquivos de som para o caça-níqueis e o poker.
+
+Adicione os seguintes arquivos de áudio:
+- spin1.mp3 - Som de giro do caça-níqueis
+- spin2.mp3 - Som alternativo de giro
+- spin3.mp3 - Som alternativo de giro
+- reel-stop.mp3 - Som de parada do reel
+- small-win.mp3 - Som de vitória pequena
+- big-win.mp3 - Som de vitória grande
+- lose.mp3 - Som de derrota
+- card-deal.mp3 - Som de distribuição de cartas no poker
+- card-flip.mp3 - Som de virar carta no poker
+- poker-win.mp3 - Som de vitória no poker
+- poker-lose.mp3 - Som de derrota no poker
+
+Você pode obter estes sons em sites de efeitos sonoros gratuitos como Freesound.org ou ZapSplat.
