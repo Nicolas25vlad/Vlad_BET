@@ -351,7 +351,7 @@ function initSlotMachine() {
             symbols.forEach(symbol => symbol.classList.remove('win'));
         });
         
-        // Animação de giro
+        // Animação de giro realista
         const spinResults = [];
         const spinSounds = ['spin1', 'spin2', 'spin3'];
         
@@ -360,170 +360,352 @@ function initSlotMachine() {
         spinSound.volume = 0.3;
         spinSound.play().catch(e => console.log('Erro ao reproduzir som:', e));
         
+        // Número de símbolos por reel para animação
+        const symbolsPerReel = 30;
+        
         reels.forEach((reel, reelIndex) => {
             // Criar elementos para animação
             reel.innerHTML = '';
+            reel.classList.add('spinning');
             
-            // Adicionar símbolos aleatórios para animação
-            for (let i = 0; i < 20; i++) {
-                const symbolDiv = document.createElement('div');
-                symbolDiv.className = 'slot-symbol spinning';
-                const randomSymbol = symbols[Math.floor(Math.random() * symbols.length)];
-                symbolDiv.textContent = randomSymbol;
-                symbolDiv.setAttribute('data-symbol', randomSymbol);
-                symbolDiv.style.animationDelay = `${i * 0.05}s`;
-                reel.appendChild(symbolDiv);
-            }
+            // Criar container para os símbolos visíveis
+            const symbolsContainer = document.createElement('div');
+            symbolsContainer.className = 'symbols-container';
+            reel.appendChild(symbolsContainer);
             
-            // Resultado final (aleatório)
+            // Gerar resultado final (aleatório)
             const finalSymbol = symbols[Math.floor(Math.random() * symbols.length)];
             spinResults.push(finalSymbol);
             
-            // Animar reel com atraso baseado no índice
-            setTimeout(() => {
-                // Reproduzir som de parada
-                const stopSound = new Audio('sounds/reel-stop.mp3');
-                stopSound.volume = 0.2;
-                stopSound.play().catch(e => console.log('Erro ao reproduzir som:', e));
-                
-                // Limpar reel e mostrar resultado final
-                reel.innerHTML = '';
-                const finalSymbolDiv = document.createElement('div');
-                finalSymbolDiv.className = 'slot-symbol';
-                finalSymbolDiv.textContent = finalSymbol;
-                finalSymbolDiv.setAttribute('data-symbol', finalSymbol);
-                reel.appendChild(finalSymbolDiv);
-                
-                // Adicionar efeito de tremor ao parar
-                reel.classList.add('shake');
-                setTimeout(() => reel.classList.remove('shake'), 200);
-                
-                // Verificar se é o último reel
-                if (reelIndex === reels.length - 1) {
-                    setTimeout(() => {
-                        checkSlotWin(spinResults);
-                        isSpinning = false;
-                        spinButton.disabled = false;
-                    }, 500);
+            // Criar array de símbolos para animação
+            const reelSymbols = [];
+            for (let i = 0; i < symbolsPerReel; i++) {
+                // O último símbolo é o resultado final
+                if (i === symbolsPerReel - 1) {
+                    reelSymbols.push(finalSymbol);
+                } else {
+                    reelSymbols.push(symbols[Math.floor(Math.random() * symbols.length)]);
                 }
-            }, 1000 + (reelIndex * 500));
+            }
+            
+            // Adicionar símbolos ao reel
+            for (let i = 0; i < symbolsPerReel; i++) {
+                const symbolDiv = document.createElement('div');
+                symbolDiv.className = 'slot-symbol';
+                symbolDiv.textContent = reelSymbols[i];
+                symbolDiv.setAttribute('data-symbol', reelSymbols[i]);
+                symbolsContainer.appendChild(symbolDiv);
+            }
+            
+            // Configurar animação com desaceleração
+            const spinDuration = 2000 + (reelIndex * 500); // Duração total da animação
+            const spinDistance = symbolsPerReel * 100; // Distância total da animação (altura dos símbolos)
+            
+            // Animar o reel com efeito de desaceleração mais realista
+            const startTime = Date.now();
+            const spinInterval = setInterval(() => {
+                const elapsedTime = Date.now() - startTime;
+                const progress = Math.min(elapsedTime / spinDuration, 1);
+                
+                // Função de easing para desaceleração mais realista
+                const easeOut = function(t) {
+                    // Desaceleração com pequenos saltos no final para simular o efeito mecânico
+                    if (t > 0.8) {
+                        const bounceProgress = (t - 0.8) / 0.2;
+                        return 1 - Math.pow(1 - t, 2) + Math.sin(bounceProgress * Math.PI * 2) * 0.03 * (1 - bounceProgress);
+                    }
+                    return 1 - Math.pow(1 - t, 2.5);
+                };
+                
+                // Calcular posição atual com desaceleração
+                const currentPosition = spinDistance * easeOut(progress);
+                const symbolsContainer = reel.querySelector('.symbols-container');
+                
+                // Garantir que os símbolos permaneçam visíveis durante a rotação
+                // Usando módulo para criar um efeito de loop contínuo
+                const loopPosition = currentPosition % 100;
+                symbolsContainer.style.transform = `translateY(-${loopPosition}%)`;
+                
+                // Adicionar efeito de vibração durante a rotação
+                if (progress < 0.7) {
+                    const vibration = Math.sin(elapsedTime * 0.1) * 0.5;
+                    symbolsContainer.style.transform = `translateY(-${loopPosition}%) translateX(${vibration}px)`;
+                }
+                
+                // Verificar se a animação terminou
+                if (progress >= 1) {
+                    clearInterval(spinInterval);
+                    
+                    // Reproduzir som de parada
+                    const stopSound = new Audio('sounds/reel-stop.mp3');
+                    stopSound.volume = 0.2;
+                    stopSound.play().catch(e => console.log('Erro ao reproduzir som:', e));
+                    
+                    // Efeito de flash ao parar
+                    reel.classList.add('flash');
+                    setTimeout(() => reel.classList.remove('flash'), 300);
+                    
+                    // Resetar o reel para mostrar apenas o símbolo final
+                    reel.innerHTML = '';
+                    reel.classList.remove('spinning');
+                    reel.style.transform = 'translateY(0)'; // Resetar a posição
+                    
+                    const finalSymbolDiv = document.createElement('div');
+                    finalSymbolDiv.className = 'slot-symbol';
+                    finalSymbolDiv.textContent = finalSymbol;
+                    finalSymbolDiv.setAttribute('data-symbol', finalSymbol);
+                    reel.appendChild(finalSymbolDiv);
+                    
+                    // Adicionar efeito de tremor ao parar
+                    reel.classList.add('shake');
+                    setTimeout(() => reel.classList.remove('shake'), 300);
+                    
+                    // Verificar se é o último reel
+                    if (reelIndex === reels.length - 1) {
+                        setTimeout(() => {
+                            checkSlotWin(spinResults);
+                            isSpinning = false;
+                            spinButton.disabled = false;
+                        }, 500);
+                    }
+                }
+            }, 16); // ~60fps para animação suave
         });
     });
     
-    // Verificar vitória
+    // Verificar vitória com animações aprimoradas
     function checkSlotWin(results) {
         let winAmount = 0;
-        slotResult.classList.remove('win', 'lose');
+        slotResult.classList.remove('win', 'lose', 'mega-win', 'small-win');
         
-        // Verificar combinações
-        if (results[0] === results[1] && results[1] === results[2]) {
-            // Três iguais
-            const symbol = results[0];
-            let multiplier = 0;
-            
-            switch (symbol) {
-                case '7️⃣': multiplier = 50; break;
-                case '💎': multiplier = 20; break;
-                case '🍉': multiplier = 15; break;
-                case '🍊': multiplier = 10; break;
-                case '🍇': multiplier = 8; break;
-                case '🍋': multiplier = 5; break;
-                case '🍒': multiplier = 3; break;
-                default: multiplier = 2;
-            }
-            
-            winAmount = currentBet * multiplier;
-            slotResult.textContent = `Você ganhou R$ ${winAmount.toFixed(2)}!`;
-            slotResult.classList.add('win');
-            
-            // Animação de vitória para todos os reels
-            reels.forEach((reel, index) => {
-                reel.classList.add('win');
-                const symbol = reel.querySelector('.slot-symbol');
-                if (symbol) symbol.classList.add('win');
-            });
-            
-            // Reproduzir som de vitória grande
-            const winSound = new Audio('sounds/big-win.mp3');
-            winSound.volume = 0.5;
-            winSound.play().catch(e => console.log('Erro ao reproduzir som:', e));
-            
-            // Adicionar efeito de confete para grandes vitórias
-            if (multiplier >= 10) {
-                showConfetti();
-            }
-        } else if (results[0] === results[1] || results[1] === results[2] || results[0] === results[2]) {
-            // Dois iguais
-            winAmount = currentBet * 1.5;
-            slotResult.textContent = `Você ganhou R$ ${winAmount.toFixed(2)}!`;
-            slotResult.classList.add('win');
-            
-            // Identificar quais reels têm símbolos iguais
-            if (results[0] === results[1]) {
-                reels[0].classList.add('win');
-                reels[1].classList.add('win');
-                reels[0].querySelector('.slot-symbol').classList.add('win');
-                reels[1].querySelector('.slot-symbol').classList.add('win');
-            } else if (results[1] === results[2]) {
-                reels[1].classList.add('win');
-                reels[2].classList.add('win');
-                reels[1].querySelector('.slot-symbol').classList.add('win');
-                reels[2].querySelector('.slot-symbol').classList.add('win');
-            } else if (results[0] === results[2]) {
-                reels[0].classList.add('win');
-                reels[2].classList.add('win');
-                reels[0].querySelector('.slot-symbol').classList.add('win');
-                reels[2].querySelector('.slot-symbol').classList.add('win');
-            }
-            
-            // Reproduzir som de vitória pequena
-            const winSound = new Audio('sounds/small-win.mp3');
-            winSound.volume = 0.4;
-            winSound.play().catch(e => console.log('Erro ao reproduzir som:', e));
-        } else {
-            // Sem combinação
-            slotResult.textContent = `Você perdeu R$ ${currentBet.toFixed(2)}!`;
-            slotResult.classList.add('lose');
-            
-            // Reproduzir som de derrota
-            const loseSound = new Audio('sounds/lose.mp3');
-            loseSound.volume = 0.3;
-            loseSound.play().catch(e => console.log('Erro ao reproduzir som:', e));
-            return;
-        }
+        // Adicionar efeito de suspense
+        const slotMachine = document.querySelector('.slot-machine');
+        slotMachine.classList.add('suspense');
         
-        // Adicionar ganhos ao saldo
-        currentUser.balance += winAmount;
-        updateUserInfo();
-        updateUserInStorage();
+        // Atraso para criar suspense
+        setTimeout(() => {
+            slotMachine.classList.remove('suspense');
+            
+            // Verificar combinações
+            if (results[0] === results[1] && results[1] === results[2]) {
+                // Três iguais - Grande vitória
+                const symbol = results[0];
+                let multiplier = 0;
+                
+                switch (symbol) {
+                    case '7️⃣': multiplier = 50; break;
+                    case '💎': multiplier = 20; break;
+                    case '🍉': multiplier = 15; break;
+                    case '🍊': multiplier = 10; break;
+                    case '🍇': multiplier = 8; break;
+                    case '🍋': multiplier = 5; break;
+                    case '🍒': multiplier = 3; break;
+                    default: multiplier = 2;
+                }
+                
+                winAmount = currentBet * multiplier;
+                
+                // Animação de vitória para todos os reels
+                reels.forEach((reel, index) => {
+                    reel.classList.add('win');
+                    const symbol = reel.querySelector('.slot-symbol');
+                    if (symbol) {
+                        symbol.classList.add('win');
+                        // Adicionar efeito de pulso 3D
+                        symbol.classList.add('pulse-3d');
+                    }
+                });
+                
+                // Classificar o tipo de vitória para diferentes animações
+                if (multiplier >= 20) {
+                    // Mega vitória
+                    slotResult.textContent = `MEGA VITÓRIA! R$ ${winAmount.toFixed(2)}!`;
+                    slotResult.classList.add('mega-win');
+                    
+                    // Reproduzir som de vitória grande com eco
+                    const winSound = new Audio('sounds/big-win.mp3');
+                    winSound.volume = 0.6;
+                    winSound.play().catch(e => console.log('Erro ao reproduzir som:', e));
+                    
+                    // Adicionar efeito de confete
+                    showConfetti();
+                    
+                    // Adicionar efeito de brilho à máquina
+                    slotMachine.classList.add('jackpot-glow');
+                    setTimeout(() => slotMachine.classList.remove('jackpot-glow'), 6000);
+                    
+                    // Adicionar efeito de zoom
+                    document.querySelectorAll('.slot-reel').forEach(reel => {
+                        reel.classList.add('zoom-effect');
+                        setTimeout(() => reel.classList.remove('zoom-effect'), 3000);
+                    });
+                } else if (multiplier >= 10) {
+                    // Grande vitória
+                    slotResult.textContent = `GRANDE VITÓRIA! R$ ${winAmount.toFixed(2)}!`;
+                    slotResult.classList.add('win');
+                    
+                    // Reproduzir som de vitória grande
+                    const winSound = new Audio('sounds/big-win.mp3');
+                    winSound.volume = 0.5;
+                    winSound.play().catch(e => console.log('Erro ao reproduzir som:', e));
+                    
+                    // Adicionar efeito de confete
+                    showConfetti();
+                    
+                    // Adicionar efeito de brilho à máquina
+                    slotMachine.classList.add('win-glow');
+                    setTimeout(() => slotMachine.classList.remove('win-glow'), 4000);
+                } else {
+                    // Vitória normal
+                    slotResult.textContent = `Você ganhou R$ ${winAmount.toFixed(2)}!`;
+                    slotResult.classList.add('win');
+                    
+                    // Reproduzir som de vitória pequena
+                    const winSound = new Audio('sounds/small-win.mp3');
+                    winSound.volume = 0.4;
+                    winSound.play().catch(e => console.log('Erro ao reproduzir som:', e));
+                }
+            } else if (results[0] === results[1] || results[1] === results[2] || results[0] === results[2]) {
+                // Dois iguais - Pequena vitória
+                winAmount = currentBet * 1.5;
+                slotResult.textContent = `Você ganhou R$ ${winAmount.toFixed(2)}!`;
+                slotResult.classList.add('small-win');
+                
+                // Identificar quais reels têm símbolos iguais
+                if (results[0] === results[1]) {
+                    reels[0].classList.add('win');
+                    reels[1].classList.add('win');
+                    const symbol0 = reels[0].querySelector('.slot-symbol');
+                    const symbol1 = reels[1].querySelector('.slot-symbol');
+                    if (symbol0) symbol0.classList.add('win');
+                    if (symbol1) symbol1.classList.add('win');
+                } else if (results[1] === results[2]) {
+                    reels[1].classList.add('win');
+                    reels[2].classList.add('win');
+                    const symbol1 = reels[1].querySelector('.slot-symbol');
+                    const symbol2 = reels[2].querySelector('.slot-symbol');
+                    if (symbol1) symbol1.classList.add('win');
+                    if (symbol2) symbol2.classList.add('win');
+                } else if (results[0] === results[2]) {
+                    reels[0].classList.add('win');
+                    reels[2].classList.add('win');
+                    const symbol0 = reels[0].querySelector('.slot-symbol');
+                    const symbol2 = reels[2].querySelector('.slot-symbol');
+                    if (symbol0) symbol0.classList.add('win');
+                    if (symbol2) symbol2.classList.add('win');
+                }
+                
+                // Reproduzir som de vitória pequena
+                const winSound = new Audio('sounds/small-win.mp3');
+                winSound.volume = 0.4;
+                winSound.play().catch(e => console.log('Erro ao reproduzir som:', e));
+            } else {
+                // Sem combinação - Derrota
+                slotResult.textContent = `Você perdeu R$ ${currentBet.toFixed(2)}!`;
+                slotResult.classList.add('lose');
+                
+                // Adicionar efeito de tremor à máquina
+                slotMachine.classList.add('lose-shake');
+                setTimeout(() => slotMachine.classList.remove('lose-shake'), 1000);
+                
+                // Adicionar efeito de escurecimento aos reels
+                reels.forEach(reel => {
+                    reel.classList.add('lose');
+                    setTimeout(() => reel.classList.remove('lose'), 2000);
+                });
+                
+                // Reproduzir som de derrota
+                const loseSound = new Audio('sounds/lose.mp3');
+                loseSound.volume = 0.3;
+                loseSound.play().catch(e => console.log('Erro ao reproduzir som:', e));
+                
+                // Adicionar efeito de flash vermelho
+                document.querySelector('.slot-display').classList.add('lose-flash');
+                setTimeout(() => document.querySelector('.slot-display').classList.remove('lose-flash'), 1000);
+                
+                return;
+            }
+            
+            // Adicionar ganhos ao saldo
+            currentUser.balance += winAmount;
+            updateUserInfo();
+            updateUserInStorage();
+        }, 500); // Atraso para criar suspense
     }
     
-    // Função para mostrar confete na tela
+    // Função para mostrar confete na tela com efeitos aprimorados
     function showConfetti() {
         const confettiContainer = document.createElement('div');
         confettiContainer.className = 'confetti-container';
         document.body.appendChild(confettiContainer);
         
-        // Criar 50 pedaços de confete
-        for (let i = 0; i < 50; i++) {
+        // Criar 100 pedaços de confete com formas variadas
+        for (let i = 0; i < 100; i++) {
             const confetti = document.createElement('div');
             confetti.className = 'confetti';
             confetti.style.left = `${Math.random() * 100}%`;
             confetti.style.backgroundColor = getRandomColor();
-            confetti.style.width = `${Math.random() * 10 + 5}px`;
-            confetti.style.height = `${Math.random() * 10 + 5}px`;
-            confetti.style.animationDuration = `${Math.random() * 3 + 2}s`;
+            
+            // Variar formas (círculos, quadrados, retângulos)
+            const shape = Math.floor(Math.random() * 3);
+            if (shape === 0) {
+                // Círculo
+                const size = Math.random() * 12 + 8;
+                confetti.style.width = `${size}px`;
+                confetti.style.height = `${size}px`;
+                confetti.style.borderRadius = '50%';
+            } else if (shape === 1) {
+                // Quadrado
+                const size = Math.random() * 10 + 5;
+                confetti.style.width = `${size}px`;
+                confetti.style.height = `${size}px`;
+                confetti.style.transform = `rotate(${Math.random() * 360}deg)`;
+            } else {
+                // Retângulo
+                confetti.style.width = `${Math.random() * 15 + 5}px`;
+                confetti.style.height = `${Math.random() * 7 + 3}px`;
+                confetti.style.transform = `rotate(${Math.random() * 360}deg)`;
+            }
+            
+            // Variar velocidade e atraso
+            confetti.style.animationDuration = `${Math.random() * 4 + 2}s`;
+            confetti.style.animationDelay = `${Math.random() * 2}s`;
+            
+            // Adicionar brilho
+            confetti.style.boxShadow = `0 0 ${Math.random() * 5 + 2}px ${getRandomColor(true)}`;
+            
             confettiContainer.appendChild(confetti);
         }
         
-        // Remover o confete após 5 segundos
+        // Adicionar mensagem de vitória
+        const winMessage = document.createElement('div');
+        winMessage.className = 'win-message';
+        winMessage.textContent = 'GRANDE VITÓRIA!';
+        confettiContainer.appendChild(winMessage);
+        
+        // Remover o confete após 6 segundos
         setTimeout(() => {
             document.body.removeChild(confettiContainer);
-        }, 5000);
+        }, 6000);
     }
     
-    // Função para gerar cores aleatórias
-    function getRandomColor() {
-        const colors = ['#f44336', '#e91e63', '#9c27b0', '#673ab7', '#3f51b5', '#2196f3', '#03a9f4', '#00bcd4', '#009688', '#4caf50', '#8bc34a', '#cddc39', '#ffeb3b', '#ffc107', '#ff9800', '#ff5722'];
+    // Função para gerar cores aleatórias com opção de cores brilhantes
+    function getRandomColor(bright = false) {
+        const regularColors = [
+            '#f44336', '#e91e63', '#9c27b0', '#673ab7', '#3f51b5', '#2196f3', 
+            '#03a9f4', '#00bcd4', '#009688', '#4caf50', '#8bc34a', '#cddc39', 
+            '#ffeb3b', '#ffc107', '#ff9800', '#ff5722', '#ff1744', '#d500f9', 
+            '#651fff', '#00b0ff', '#1de9b6', '#76ff03', '#ffea00', '#ff3d00'
+        ];
+        
+        const brightColors = [
+            '#ff5252', '#ff4081', '#e040fb', '#7c4dff', '#536dfe', '#448aff', 
+            '#40c4ff', '#18ffff', '#64ffda', '#69f0ae', '#b2ff59', '#eeff41', 
+            '#ffff00', '#ffd740', '#ffab40', '#ff6e40', '#ff1744', '#f50057', 
+            '#d500f9', '#651fff', '#3d5afe', '#2979ff', '#00b0ff', '#00e5ff'
+        ];
+        
+        const colors = bright ? brightColors : regularColors;
         return colors[Math.floor(Math.random() * colors.length)];
-    }}
+    }
+}

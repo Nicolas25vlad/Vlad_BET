@@ -91,12 +91,16 @@
                     </div>
                     <div class="game-categories">
                         <div class="category-card" data-section="slots">
-                            <div class="card-icon"><i class="fas fa-dice"></i></div>
+                            <div class="card-icon">
+                                <img src="images/slots-logo.svg" alt="Caça-Níqueis" class="game-logo">
+                            </div>
                             <h3>Caça-Níqueis</h3>
                             <p>Tente a sorte em nossos caça-níqueis exclusivos</p>
                         </div>
                         <div class="category-card" data-section="poker">
-                            <div class="card-icon"><i class="fas fa-cards"></i></div>
+                            <div class="card-icon">
+                                <img src="images/poker-logo.svg" alt="Poker" class="game-logo">
+                            </div>
                             <h3>Poker</h3>
                             <p>Mostre suas habilidades no poker</p>
                         </div>
@@ -146,6 +150,20 @@
                                     <div class="card card-placeholder"></div>
                                 </div>
                                 <div class="dealer-info">Dealer</div>
+                            </div>
+                            <div class="bot-area bot-left">
+                                <div class="bot-cards">
+                                    <div class="card card-placeholder"></div>
+                                    <div class="card card-placeholder"></div>
+                                </div>
+                                <div class="bot-info">Bot 1</div>
+                            </div>
+                            <div class="bot-area bot-right">
+                                <div class="bot-cards">
+                                    <div class="card card-placeholder"></div>
+                                    <div class="card card-placeholder"></div>
+                                </div>
+                                <div class="bot-info">Bot 2</div>
                             </div>
                             <div class="community-cards">
                                 <div class="card card-placeholder"></div>
@@ -207,11 +225,36 @@
             </header>
             <main class="admin-main">
                 <div class="admin-sidebar">
+                    <div class="sidebar-header">
+                        <i class="fas fa-cogs"></i>
+                        <h3>Menu Admin</h3>
+                    </div>
                     <ul>
-                        <li><a href="#" class="admin-nav-link active" data-section="users">Usuários</a></li>
-                        <li><a href="#" class="admin-nav-link" data-section="custom-bets-admin">Apostas Personalizadas</a></li>
-                        <li><a href="#" class="admin-nav-link" data-section="settings">Configurações</a></li>
+                        <li>
+                            <a href="#" class="admin-nav-link active" data-section="users">
+                                <i class="fas fa-users"></i>
+                                <span>Usuários</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" class="admin-nav-link" data-section="custom-bets-admin">
+                                <i class="fas fa-coins"></i>
+                                <span>Apostas</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" class="admin-nav-link" data-section="settings">
+                                <i class="fas fa-cog"></i>
+                                <span>Configurações</span>
+                            </a>
+                        </li>
                     </ul>
+                    <div class="sidebar-footer">
+                        <div class="status-indicator">
+                            <i class="fas fa-circle"></i>
+                            <span>Online</span>
+                        </div>
+                    </div>
                 </div>
                 <div class="admin-content">
                     <!-- Users Management Section -->

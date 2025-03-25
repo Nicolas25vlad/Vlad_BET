@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <!-- Background Circle -->
+  <circle cx="100" cy="100" r="90" fill="#2c3e50" />
+  
+  <!-- Card Suits -->
+  <path d="M60,70 C60,50 90,50 90,70 C90,85 75,90 75,100 C75,90 60,85 60,70 Z" fill="#e74c3c" />
+  <path d="M110,70 C110,50 140,50 140,70 C140,85 125,90 125,100 C125,90 110,85 110,70 Z" fill="#e74c3c" />
+  <path d="M75,130 L100,105 L125,130 L100,155 Z" fill="#3498db" />
+  <path d="M75,50 C55,50 55,80 75,80 C90,80 95,65 105,65 C95,65 90,50 75,50 Z" fill="#2ecc71" />
+  
+  <!-- Text -->
+  <text x="100" y="180" font-family="Arial" font-size="24" font-weight="bold" fill="white" text-anchor="middle">POKER</text>
+</svg>
